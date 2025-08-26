@@ -1,5 +1,9 @@
 package com.compiler.lexer.regex;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+
 /**
  * Utility class for regular expression parsing using the Shunting Yard
  * algorithm.
@@ -19,10 +23,11 @@ public class ShuntingYard {
      */
     public ShuntingYard() {
         // TODO: Implement constructor if needed
+        
     }
 
     /**
-     * Inserts the explicit concatenation operator ('·') into the regular
+     * Inserts the explicit concatenation operator ('.') into the regular
      * expression according to standard rules. This makes implicit
      * concatenations explicit, simplifying later parsing.
      *
@@ -40,7 +45,18 @@ public class ShuntingYard {
                         - If so, append '·' to output
             Return output as string
          */
-        throw new UnsupportedOperationException("Not implemented");
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < regex.length(); i++) {
+            char current = regex.charAt(i);
+            output.append(current); // Append current character
+            if (i < regex.length() - 1) { // If not at end of string
+                char next = regex.charAt(i + 1); 
+                if (isOperand(current) && isOperand(next)) { // Check if current and next character form an implicit concatenation
+                    output.append('.');
+                }
+            }
+        }
+        return output.toString();
     }
 
     /**
@@ -54,9 +70,9 @@ public class ShuntingYard {
         // TODO: Implement isOperand
         /*
         Pseudocode:
-        Return true if c is not one of: '|', '*', '?', '+', '(', ')', '·'
+        Return true if c is not one of: '|', '*', '?', '+', '(', ')', '.'
          */
-        throw new UnsupportedOperationException("Not implemented");
+        return ".|*+?()".indexOf(c) == -1; // Looks if the char is in the string of operators 
     }
 
     /**
@@ -72,6 +88,23 @@ public class ShuntingYard {
         /*
         Pseudocode:
         1. Define operator precedence map
+
+        +---+----------------------------------------------------------+
+        |   |             ERE Precedence (from high to low)            |
+        +---+----------------------------------------------------------+
+        | 1 | Collation-related bracket symbols | [==] [::] [..]       |
+        | 2 | Escaped characters                | \<special character> |
+        | 3 | Bracket expression                | []                   |
+        | 4 | Grouping                          | ()                   |
+        | 5 | Single-character-ERE duplication  | * + ? {m,n}          |
+        | 6 | Concatenation                     |                      |
+        | 7 | Anchoring                         | ^ $                  |
+        | 8 | Alternation                       | |                    |
+        +---+-----------------------------------+----------------------+
+
+        In this case our regex only uses the following operators: '|', '*', '?', '+', '(', ')', '·'.
+
+        
         2. Preprocess regex to insert explicit concatenation operators
         3. For each character in regex:
             - If operand: append to output
@@ -81,6 +114,75 @@ public class ShuntingYard {
         4. After loop, pop remaining operators to output
         5. Return output as string
          */
-        throw new UnsupportedOperationException("Not implemented");
+
+
+
+        Map<Character, Integer> precedence = new HashMap<>();
+        precedence.put('|', 1); // Alternation
+        precedence.put('.', 2); // Concatenation
+        precedence.put('*', 3); // Kleene Star
+        precedence.put('?', 3); // Optional
+        precedence.put('+', 3); // One or more
+        precedence.put('(', 0); // Parentheses have lowest precedence
+        precedence.put(')', 0); // Parentheses have lowest precedence
+
+        String regex; 
+        regex = insertConcatenationOperator(infixRegex);
+
+        // Initialize the output and operator stacks
+        StringBuilder output = new StringBuilder();
+        Stack<Character> operators = new Stack<>();
+
+        for (int i = 0; i < regex.length(); i++) {
+            char current = regex.charAt(i);
+
+            if (isOperand(current)) {
+                // If operand add to output
+                output.append(current);
+            } else if (current == '(') {
+                // If '(', push to stack
+                operators.push(current);
+            } else if (current == ')') {
+                // If ')', pop until '(' is found
+                while (!operators.isEmpty() && operators.peek() != '(') {
+                    output.append(operators.pop());
+                }
+                if (!operators.isEmpty()) {
+                    operators.pop(); // Pop '('
+                }
+            } else {
+                // If operator, pop higher/equal precedence operators
+                while (!operators.isEmpty() && operators.peek() != '(' && 
+                      precedence.get(current) <= precedence.get(operators.peek())) {
+                    output.append(operators.pop());
+                }
+                operators.push(current);
+            }
+        }
+
+        // Pop remaining operators
+        while (!operators.isEmpty()) {
+            output.append(operators.pop());
+        }
+
+        return output.toString();
+    }
+
+    // test
+    public static void main(String[] args) {
+        // test insertConcatenationOperator
+        String concat = "(abc)+(ab|c)";
+        System.out.println("Original: " + concat);
+        concat = insertConcatenationOperator(concat);
+        System.out.println("After insertion: " + concat);
+
+        String infix = "ab";
+        String postfix = toPostfix(infix);
+        System.out.println("Infix: " + infix);
+        System.out.println("Postfix: " + postfix);
+
+        String postfix2 = toPostfix(concat);
+        System.out.println("Original: " + concat);
+        System.out.println("Postfix after concatenation: " + postfix2);
     }
 }

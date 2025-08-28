@@ -23,6 +23,7 @@ public class RegexTest {
         String regex = "a+";
         RegexParser parser = new RegexParser();
         NFA nfa = parser.parse(regex);
+        nfa.endState.isFinal = true;
         NfaSimulator nfaSimulator = new NfaSimulator();
         boolean actualNfa = nfaSimulator.simulate(nfa, input);
         // DFA

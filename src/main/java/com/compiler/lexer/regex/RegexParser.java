@@ -95,8 +95,6 @@ public class RegexParser {
         NFA nfa = stack.pop();
         State start = new State();
         State end = new State();
-        nfa.endState.setFinal(false); // Make the end state non-final, because we are adding a new one
-        end.setFinal(true);
         start.addTransition(null, nfa.startState); // new start
         nfa.endState.addTransition(null, end); // new end
         start.addTransition(null, end); // epsilon transition for zero occurrence
@@ -111,10 +109,8 @@ public class RegexParser {
     private void handlePlus(Stack<NFA> stack) {
         // Pseudocode: Pop NFA, create new start/end, add transitions for one or more occurrence
         NFA nfa = stack.pop();
-        nfa.endState.setFinal(false); // Make the end state non-final, because we are adding a new one
         State start = new State();
         State end = new State();
-        end.setFinal(true);
         start.addTransition(null, nfa.startState); // add epsilon symbol on the start state
         nfa.endState.addTransition(null, end); // add epsilon symbol to the end state
         nfa.endState.addTransition(null, nfa.startState); // Loop back for one or more
@@ -130,7 +126,6 @@ public class RegexParser {
         // Pseudocode: Create start/end state, add transition for character
         State start = new State();
         State end = new State();
-        end.setFinal(true);
         NFA nfa = new NFA(start, end);
         start.addTransition(c, end);
         return nfa;
@@ -147,7 +142,6 @@ public class RegexParser {
         NFA nfa2 = stack.pop();
         NFA nfa1 = stack.pop();
         State end_1 = nfa1.endState;
-        nfa1.endState.setFinal(false); 
         State start_2 = nfa2.startState;
         end_1.addTransition(null,start_2);
         nfa1 = new NFA(nfa1.startState, nfa2.endState);

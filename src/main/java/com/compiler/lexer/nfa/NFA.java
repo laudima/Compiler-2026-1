@@ -74,7 +74,6 @@ public class NFA {
     public NFA(State start, State end) {
         this.startState = start;
         this.endState = end;
-        end.setFinal(true); // Mark end state as final
         this.currentState = start; // Initialize current state to start state
         this.states = Set.of(start, end); // TODO: this are not all of the states
         this.alphabet = Set.of(); // TODO: these are not all of the symbols 

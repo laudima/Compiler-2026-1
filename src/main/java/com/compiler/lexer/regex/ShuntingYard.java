@@ -35,23 +35,25 @@ public class ShuntingYard {
      * @return Regular expression with explicit concatenation operators.
      */
     public static String insertConcatenationOperator(String regex) {
-        // TODO: Implement insertConcatenationOperator
         /*
             Pseudocode:
             For each character in regex:
                 - Append current character to output
                 - If not at end of string:
-                        - Check if current and next character form an implicit concatenation
-                        - If so, append '·' to output
+                    - Check if current and next character form an implicit concatenation
+                    - If so, append '·' to output
             Return output as string
-         */
+        */
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < regex.length(); i++) {
             char current = regex.charAt(i);
             output.append(current); // Append current character
+            
             if (i < regex.length() - 1) { // If not at end of string
-                char next = regex.charAt(i + 1); 
-                if (isOperand(current) && isOperand(next)) { // Check if current and next character form an implicit concatenation
+                char next = regex.charAt(i + 1);
+                
+                // Check if we need to insert concatenation operator
+                if (needsConcatenation(current, next)) {
                     output.append('.');
                 }
             }
@@ -59,6 +61,26 @@ public class ShuntingYard {
         return output.toString();
     }
 
+    private static boolean needsConcatenation(char current, char next) {
+        // Cases where we need concatenation:
+        // 1. operand followed by operand (e.g., "ab")
+        // 2. operand followed by opening parenthesis (e.g., "a(")
+        // 3. closing parenthesis followed by operand (e.g., ")a")
+        // 4. closing parenthesis followed by opening parenthesis (e.g., ")(")
+        // 5. postfix operator (*,+,?) followed by operand (e.g., "a*b")
+        // 6. postfix operator followed by opening parenthesis (e.g., "a*(")
+        
+        return (isOperand(current) && isOperand(next)) ||
+            (isOperand(current) && next == '(') ||
+            (current == ')' && isOperand(next)) ||
+            (current == ')' && next == '(') ||
+            (isPostfixOperator(current) && isOperand(next)) ||
+            (isPostfixOperator(current) && next == '(');
+    }
+
+    private static boolean isPostfixOperator(char c) {
+        return c == '*' || c == '+' || c == '?';
+    }
     /**
      * Determines if the given character is an operand (not an operator or
      * parenthesis).
@@ -67,7 +89,6 @@ public class ShuntingYard {
      * @return true if it is an operand, false otherwise.
      */
     private static boolean isOperand(char c) {
-        // TODO: Implement isOperand
         /*
         Pseudocode:
         Return true if c is not one of: '|', '*', '?', '+', '(', ')', '.'
@@ -170,19 +191,12 @@ public class ShuntingYard {
 
     // test
     public static void main(String[] args) {
-        // test insertConcatenationOperator
-        String concat = "(abc)+(ab|c)";
+        String concat = "ab*c";
         System.out.println("Original: " + concat);
         concat = insertConcatenationOperator(concat);
-        System.out.println("After insertion: " + concat);
-
-        String infix = "ab";
-        String postfix = toPostfix(infix);
-        System.out.println("Infix: " + infix);
+        System.out.println("After concatenation: " + concat);
+        String postfix = toPostfix(concat);
         System.out.println("Postfix: " + postfix);
 
-        String postfix2 = toPostfix(concat);
-        System.out.println("Original: " + concat);
-        System.out.println("Postfix after concatenation: " + postfix2);
     }
 }

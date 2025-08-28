@@ -1,6 +1,7 @@
 package com.compiler.lexer.nfa;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Represents a state in a Non-deterministic Finite Automaton (NFA).
@@ -42,8 +43,8 @@ public class State {
      * The state is not final by default.
      */
     public State() {
-    // TODO: Implement constructor
-    throw new UnsupportedOperationException("Not implemented");
+        this.id = nextId++;
+        this.isFinal = false;
     }
 
     /**
@@ -51,8 +52,7 @@ public class State {
      * @return true if this state is final, false otherwise
      */
     public boolean isFinal() {
-    // TODO: Implement isFinal
-    throw new UnsupportedOperationException("Not implemented");
+        return isFinal;
     }
 
     /**
@@ -60,9 +60,15 @@ public class State {
      * @return a list of states reachable by epsilon transitions
      */
     public List<State> getEpsilonTransitions() {
-    // TODO: Implement getEpsilonTransitions
-    // Pseudocode: Iterate over transitions, if symbol is null, add to result list
-    throw new UnsupportedOperationException("Not implemented");
+        // Pseudocode: Iterate over transitions, if symbol is null, add to result list
+        List<State> result = new ArrayList<>();
+        if (transitions == null) return result;
+        for (Transition t : transitions) {
+            if (t.symbol == null) {
+                result.add(t.toState);
+            }
+        }
+        return result;
     }
 
     /**
@@ -71,8 +77,34 @@ public class State {
      * @return a list of states reachable by the given symbol
      */
     public List<State> getTransitions(char symbol) {
-    // TODO: Implement getTransitions
     // Pseudocode: Iterate over transitions, if symbol matches, add to result list
-    throw new UnsupportedOperationException("Not implemented");
+    // do i have to add the epsilon transitions as well?
+        List<State> result = new ArrayList<>();
+        if (transitions == null) return result; // If there is no transitions 
+        for (Transition t : transitions) {
+            if (t.symbol == null) {
+                continue;
+            } else if (t.symbol == symbol) {
+                result.add(t.toState);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Adds a transition to this state.
+     * Use {@code null} as the symbol for epsilon transitions.
+     * @param symbol the symbol for the transition, or {@code null} for epsilon
+     * @param toState the state to transition to
+     */
+    public void addTransition(Character symbol, State toState) {
+        if (transitions == null) {
+            transitions = new ArrayList<>();
+        }
+        transitions.add(new Transition(symbol, toState));
+    }
+
+    public void setFinal(boolean isFinal) {
+        this.isFinal = isFinal;
     }
 }

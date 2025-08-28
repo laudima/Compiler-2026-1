@@ -1,9 +1,13 @@
 package com.compiler.lexer;
 
 import java.util.Set;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import com.compiler.lexer.nfa.NFA;
 import com.compiler.lexer.nfa.State;
+import com.compiler.lexer.nfa.Transition;
+
 
 /**
  * NfaSimulator
@@ -42,7 +46,6 @@ public class NfaSimulator {
      * @return True if the input is accepted by the NFA, false otherwise.
      */
     public boolean simulate(NFA nfa, String input) {
-        // TODO: Implement simulate
         /*
          Pseudocode:
          1. Initialize currentStates with epsilon-closure of NFA start state
@@ -55,9 +58,27 @@ public class NfaSimulator {
          3. After input, if any state in currentStates is final, return true
          4. Otherwise, return false
         */
-        throw new UnsupportedOperationException("Not implemented");
+        State start = nfa.startState;
+        Set<State> currentStates = new HashSet<>();
+        addEpsilonClosure(start, currentStates); // Initialize currentStates with epsilon-closure of start
+        for (char c : input.toCharArray()) {
+            Set<State> nextStates = new HashSet<>();
+            for (State state : currentStates) {
+                List<State> transitions = state.getTransitions(c);
+                if(transitions.isEmpty()) continue; // there are no transitions for this symbol
+                for (State transition : transitions) {
+                    addEpsilonClosure(transition, nextStates);
+                }
+            }
+            currentStates = nextStates;
+        }
+        for (State state : currentStates) {
+            if (state.isFinal()) {
+                return true;
+            }
+        }
+        return false;
     }
-
     /**
      * Computes the epsilon-closure: all states reachable from 'start' using only epsilon (null) transitions.
      *
@@ -65,7 +86,6 @@ public class NfaSimulator {
      * @param closureSet The set to accumulate reachable states.
      */
     private void addEpsilonClosure(State start, Set<State> closureSet) {
-        // TODO: Implement addEpsilonClosure
         /*
          Pseudocode:
          If start not in closureSet:
@@ -74,6 +94,11 @@ public class NfaSimulator {
                  - If transition symbol is null:
                      - Recursively add epsilon-closure of destination state
         */
-        throw new UnsupportedOperationException("Not implemented");
+       if (!closureSet.contains(start)) {
+           closureSet.add(start);
+           for (State transition : start.getEpsilonTransitions()) {
+               addEpsilonClosure(transition, closureSet);
+           }
+       }
     }
 }

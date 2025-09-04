@@ -28,7 +28,13 @@ public class DFA {
      * @param allStates  A list of all states in the DFA.
      */
     public DFA(DfaState startState, List<DfaState> allStates) {
-        //TODO: Implement DFA construction logic.
-        throw new UnsupportedOperationException("DFA construction is not supported yet.");
+        this.startState = startState;
+        this.allStates = allStates;
+        this.alphabet = new java.util.HashSet<>();
+        for (DfaState state : allStates) {
+            // Collect all unique symbols in the DFA's alphabet
+            // With the function keySet(), we get all the keys (input symbols) from the transitions map
+            this.alphabet.addAll(state.getTransitions().keySet());
+        }
     }
 }

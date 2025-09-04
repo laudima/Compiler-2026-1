@@ -1,6 +1,4 @@
 package com.compiler.lexer.nfa;
-
-import java.util.Set;
 /**
  * Represents a Non-deterministic Finite Automaton (NFA) with a start and end state.
  * <p>

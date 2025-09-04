@@ -1,6 +1,7 @@
 package com.compiler.lexer.dfa;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * DFA
@@ -18,7 +19,8 @@ public class DFA {
      * A list of all states in the DFA.
      */
     public final List<DfaState> allStates;
-    // Optionally, a Set<Character> for the alphabet could be added.
+
+    public final Set<Character> alphabet;
 
     /**
      * Constructs a new DFA.

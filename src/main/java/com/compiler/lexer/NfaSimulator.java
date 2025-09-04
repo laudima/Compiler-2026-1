@@ -1,12 +1,10 @@
 package com.compiler.lexer;
 
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import com.compiler.lexer.nfa.NFA;
 import com.compiler.lexer.nfa.State;
-import com.compiler.lexer.nfa.Transition;
 
 
 /**
@@ -33,7 +31,7 @@ public class NfaSimulator {
      * Default constructor for NfaSimulator.
      */
         public NfaSimulator() {
-            // TODO: Implement constructor if needed
+            // No initialization required
         }
 
     /**

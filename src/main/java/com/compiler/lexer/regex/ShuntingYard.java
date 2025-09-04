@@ -22,8 +22,7 @@ public class ShuntingYard {
      * Default constructor for ShuntingYard.
      */
     public ShuntingYard() {
-        // TODO: Implement constructor if needed
-        
+        // No initialization required
     }
 
     /**

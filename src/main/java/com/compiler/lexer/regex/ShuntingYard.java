@@ -105,7 +105,6 @@ public class ShuntingYard {
      * @return Regular expression in postfix notation.
      */
     public static String toPostfix(String infixRegex) {
-        // TODO: Implement toPostfix
         /*
         Pseudocode:
         1. Define operator precedence map

@@ -3,7 +3,7 @@ package com.compiler;
 import java.util.Map;
 import java.util.Set;
 
-import com.compiler.lexer.DfaMinimizer;
+// import com.compiler.lexer.DfaMinimizer;
 import com.compiler.lexer.DfaSimulator;
 import com.compiler.lexer.NfaToDfaConverter;
 import com.compiler.lexer.dfa.DFA;
@@ -51,17 +51,17 @@ public class Main {
         System.out.println("--- Original DFA ---");
         visualizeDfa(dfa);
 
-        // --- STEP 3: DFA Minimization ---
-        DFA minimizedDfa = DfaMinimizer.minimizeDfa(dfa, alphabet);
-        System.out.println("--- Minimized DFA ---");
-        visualizeDfa(minimizedDfa);
+        // // --- STEP 3: DFA Minimization ---
+        // DFA minimizedDfa = DfaMinimizer.minimizeDfa(dfa, alphabet);
+        // System.out.println("--- Minimized DFA ---");
+        // visualizeDfa(minimizedDfa);
 
-        // --- STEP 4: DFA Simulation ---
+        //--- STEP 4: DFA Simulation ---
         DfaSimulator dfaSimulator = new DfaSimulator();
         System.out.println("--- Testing Simulator with Minimized DFA ---");
 
         for (String s : testStrings) {
-            boolean accepted = dfaSimulator.simulate(minimizedDfa, s);
+            boolean accepted = dfaSimulator.simulate(dfa, s);
             System.out.println("String '" + s + "': " + (accepted ? "Accepted" : "Rejected"));
         }
     }

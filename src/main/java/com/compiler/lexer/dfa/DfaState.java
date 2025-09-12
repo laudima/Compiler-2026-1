@@ -35,6 +35,11 @@ public class DfaState {
      * Indicates whether this DFA state is a final (accepting) state.
      */
     public boolean isFinal;
+
+    /**
+     * Token type reconocido si es estado final (null si no es final o no tiene token asociado).
+     */
+    public String tokenType;
     /**
      * Map of input symbols to destination DFA states (transitions).
      */
@@ -44,10 +49,49 @@ public class DfaState {
      * Constructs a new DFA state.
      * @param nfaStates The set of NFA states that this DFA state represents.
      */
+
     public DfaState(Set<State> nfaStates) {
         this.id = nextId++;
         this.nfaStates = nfaStates;
         this.isFinal = nfaStates.stream().anyMatch(State::isFinal);
+        this.tokenType = null;
+        // If it is final, assign the tokenType of highest priority (lowest index)
+        int minPriority = Integer.MAX_VALUE;
+        for (State s : nfaStates) {
+            if (s.isFinal && s.tokenType != null) {
+                // It is assumed that the tokenType has the form "TOKENNAME#PRIORITY"
+                int priority = extractPriority(s.tokenType);
+                if (priority < minPriority) {
+                    minPriority = priority;
+                    this.tokenType = s.tokenType;
+                }
+            }
+        }
+        this.transitions = new java.util.HashMap<>();
+    }
+
+    /**
+     * Extracts the priority number from a token type string.
+     * For example, from "TOKEN#2" it extracts 2.
+     * If the format is not as expected, it returns Integer.MAX_VALUE.
+     * @param tokenType The token type string.
+     * @return The extracted priority number.
+     */
+    private int extractPriority(String tokenType) {
+        if (tokenType.contains("#")) {
+            try {
+                return Integer.parseInt(tokenType.substring(tokenType.indexOf('#')+1));
+            } catch (Exception e) {
+                return Integer.MAX_VALUE;
+            }
+        }
+        return 0;
+    }
+
+    public DfaState(int id, boolean isFinal, Set<State> nfaStates) {
+        this.id = id;
+        this.isFinal = isFinal;
+        this.nfaStates = nfaStates;
         this.transitions = new java.util.HashMap<>();
     }
 

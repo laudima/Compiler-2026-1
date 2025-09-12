@@ -39,12 +39,18 @@ public class State {
     public boolean isFinal;
 
     /**
+     * Token type recognized if this is a final state (null si no es final o no tiene token asociado).
+     */
+    public String tokenType;
+
+    /**
      * Constructs a new state with a unique identifier and no transitions.
      * The state is not final by default.
      */
     public State() {
         this.id = nextId++;
         this.isFinal = false;
+        this.tokenType = null;
     }
 
     /**

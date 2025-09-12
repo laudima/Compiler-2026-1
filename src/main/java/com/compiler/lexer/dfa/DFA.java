@@ -37,4 +37,8 @@ public class DFA {
             this.alphabet.addAll(state.getTransitions().keySet());
         }
     }
+
+    public List<DfaState> getAllStates() {
+        return allStates;
+    }
 }

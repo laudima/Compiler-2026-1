@@ -20,6 +20,7 @@ public class DfaMinimizationTest {
         String regex = "a(b*|c+)?d";
         RegexParser parser = new RegexParser();
         NFA nfa = parser.parse(regex);
+        nfa.endState.isFinal = true;
         Set<Character> alphabet = new HashSet<>();
         alphabet.add('a');
         alphabet.add('b');
@@ -35,5 +36,30 @@ public class DfaMinimizationTest {
         assertTrue(dfaSimulator.simulate(minimized, "ad"), "Minimized DFA should accept 'ad'");
         assertFalse(dfaSimulator.simulate(minimized, "a"), "Minimized DFA should not accept 'a'");
         assertFalse(dfaSimulator.simulate(minimized, "d"), "Minimized DFA should not accept 'd'");
+    }
+    
+    @Test
+    public void testMinimization_2() {
+        String regex = "a*|(bc)|(d|e|f)";
+        RegexParser parser = new RegexParser();
+        NFA nfa = parser.parse(regex);
+        nfa.endState.isFinal = true;
+        Set<Character> alphabet = new HashSet<>();
+        alphabet.add('a');
+        alphabet.add('b');
+        alphabet.add('c');
+        alphabet.add('d');
+        alphabet.add('e');
+        alphabet.add('f');
+        DFA dfa = NfaToDfaConverter.convertNfaToDfa(nfa, alphabet);
+        DFA minimized = DfaMinimizer.minimizeDfa(dfa, alphabet);
+        DfaSimulator dfaSimulator = new DfaSimulator();
+        assertTrue(dfaSimulator.simulate(minimized, "bc"), "Minimized DFA should accept 'bc'");
+        assertTrue(dfaSimulator.simulate(minimized, "aaa"), "Minimized DFA should accept 'aaa'");
+        assertTrue(dfaSimulator.simulate(minimized, "f"), "Minimized DFA should accept 'f'");
+        assertTrue(dfaSimulator.simulate(minimized, "d"), "Minimized DFA should accept 'd'");
+        assertTrue(dfaSimulator.simulate(minimized, "e"), "Minimized DFA should accept 'e'");
+        assertFalse(dfaSimulator.simulate(minimized, "bb"), "Minimized DFA should not accept 'bb'");
+        assertFalse(dfaSimulator.simulate(minimized, "cc"), "Minimized DFA should not accept 'cc'");
     }
 }

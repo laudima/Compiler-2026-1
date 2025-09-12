@@ -11,6 +11,7 @@ import com.compiler.lexer.nfa.NfaCombiner;
 import com.compiler.lexer.nfa.NFA;
 import com.compiler.lexer.dfa.DFA;
 import com.compiler.lexer.NfaToDfaConverter;
+import com.compiler.lexer.DfaMinimizer;
 import java.util.*;
 
 public class TokenizerTest {
@@ -23,6 +24,7 @@ public class TokenizerTest {
         NFA nfa = NfaCombiner.combine(rules);
         Set<Character> alphabet = new HashSet<>(Arrays.asList('a','b','c','0','1','2'));
         DFA dfa = NfaToDfaConverter.convertNfaToDfa(nfa, alphabet);
+        dfa = DfaMinimizer.minimizeDfa(dfa, alphabet);
         return new Tokenizer(dfa);
     }
 

@@ -64,14 +64,19 @@ public class NfaToDfaConverter {
 			}
 		}
 
-		// 3. Mark final states in the DFA
+		// 3. Mark final states in the DFA and assign tokenTypeName
 		for (DfaState dfaState : dfaStates) {
+			String foundTokenTypeName = null;
 			for (State nfaState : dfaState.nfaStates) {
 				if (nfaState.isFinal()) {
 					dfaState.isFinal = true;
-					break;
+					// Prioridad: el primer tokenTypeName encontrado
+					if (foundTokenTypeName == null && nfaState.tokenTypeName != null) {
+						foundTokenTypeName = nfaState.tokenTypeName;
+					}
 				}
 			}
+			dfaState.tokenTypeName = foundTokenTypeName;
 		}
 
 		// 4. Return the constructed DFA

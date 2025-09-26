@@ -39,6 +39,11 @@ public class State {
     public boolean isFinal;
 
     /**
+     * The token type name associated with this final state (null if not final).
+     */
+    public String tokenTypeName;
+
+    /**
      * Constructs a new state with a unique identifier and no transitions.
      * The state is not final by default.
      */
@@ -46,6 +51,7 @@ public class State {
         this.id = nextId++;
         this.transitions = new ArrayList<>();
         this.isFinal = false;
+        this.tokenTypeName = null;
     }
 
     /**
@@ -68,6 +74,15 @@ public class State {
             }
         }
         return result;
+    }
+
+    /**
+     * Sets this state as final and associates a token type name.
+     * @param tokenTypeName The token type name to associate with this state.
+     */
+    public void setFinal(String tokenTypeName) {
+        this.isFinal = true;
+        this.tokenTypeName = tokenTypeName;
     }
 
     /**

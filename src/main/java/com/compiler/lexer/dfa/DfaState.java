@@ -15,6 +15,10 @@ import com.compiler.lexer.nfa.State;
  */
 public class DfaState {
     /**
+     * El nombre del tipo de token reconocido si este estado es final. Puede ser null o una lista si hay conflicto.
+     */
+    public String tokenTypeName;
+    /**
      * Returns all transitions from this state.
      * @return Map of input symbols to destination DFA states.
      */
@@ -44,10 +48,11 @@ public class DfaState {
      * @param nfaStates The set of NFA states that this DFA state represents.
      */
     public DfaState(Set<State> nfaStates) {
-        this.id = nextId++;
-        this.nfaStates = nfaStates;
-        this.isFinal = false; // This will be determined after all states are created
-        this.transitions = new HashMap<>();
+    this.id = nextId++;
+    this.nfaStates = nfaStates;
+    this.isFinal = false; // This will be determined after all states are created
+    this.transitions = new HashMap<>();
+    this.tokenTypeName = null;
     }
 
     /**

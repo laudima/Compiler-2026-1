@@ -11,8 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 
-import com.compiler.lexer.dfa.DFA;
-import com.compiler.lexer.nfa.NFA;
 
 public class LexerBuilderTest {
     @Test
@@ -26,40 +24,35 @@ public class LexerBuilderTest {
         );
         Files.write(Paths.get(tokensFile), lines);
 
-        // Construye NFAs
-        List<NFA> nfas = LexerBuilder.buildNfasFromFile(tokensFile);
-        assertEquals(3, nfas.size());
+    // Build a portable lexer definition (transition table)
+    Set<Character> alphabet = new HashSet<>();
+    for (char c = '0'; c <= '9'; c++) alphabet.add(c);
+    for (char c = 'a'; c <= 'z'; c++) alphabet.add(c);
+    for (char c = 'A'; c <= 'Z'; c++) alphabet.add(c);
+    alphabet.add('_');
 
-        // Une NFAs y construye DFA
-        NFA combinedNfa = NFA.union(nfas);
-        Set<Character> alphabet = new HashSet<>();
-        for (char c = '0'; c <= '9'; c++) alphabet.add(c);
-        for (char c = 'a'; c <= 'z'; c++) alphabet.add(c);
-        for (char c = 'A'; c <= 'Z'; c++) alphabet.add(c);
-        alphabet.add('_');
-        DFA dfa = NfaToDfaConverter.convertNfaToDfa(combinedNfa, alphabet);
-        assertNotNull(dfa);
+    com.compiler.lexer.LexerDefinition def = LexerBuilder.buildLexerDefinitionFromFile(tokensFile, alphabet);
+    assertNotNull(def);
 
-        // Simula reconocimiento simple: busca el tipo de token para "if" y "123"
-        String input1 = "if";
-        String input2 = "123";
-        String input3 = "variable";
-        assertEquals("KEYWORD", simulateDfa(dfa, input1));
-        assertEquals("NUMBER", simulateDfa(dfa, input2));
-        assertEquals("IDENTIFIER", simulateDfa(dfa, input3));
+    // Simula reconocimiento simple usando la tabla: busca el tipo de token para "if" y "123"
+    assertEquals("KEYWORD", simulateTable(def, "if"));
+    assertEquals("NUMBER", simulateTable(def, "123"));
+    assertEquals("IDENTIFIER", simulateTable(def, "variable"));
 
         // Limpia archivo temporal
         Files.deleteIfExists(Paths.get(tokensFile));
     }
 
     // Simula el DFA sobre la entrada y retorna el tokenTypeName del estado final alcanzado
-    private String simulateDfa(DFA dfa, String input) {
-        com.compiler.lexer.dfa.DfaState state = dfa.startState;
+
+    private String simulateTable(com.compiler.lexer.LexerDefinition def, String input) {
+        int state = def.startState;
         for (char c : input.toCharArray()) {
-            com.compiler.lexer.dfa.DfaState next = state.getTransition(c);
-            if (next == null) return null;
-            state = next;
+            int a = def.alphabetIndex(c);
+            if (a == -1) return null;
+            state = def.transitions[state][a];
+            if (state == -1) return null;
         }
-        return state.isFinal ? state.tokenTypeName : null;
+        return def.isFinal[state] ? def.tokenTypeNames[state] : null;
     }
 }

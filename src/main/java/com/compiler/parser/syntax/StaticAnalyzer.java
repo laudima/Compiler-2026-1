@@ -157,4 +157,12 @@ public class StaticAnalyzer {
 
         return followSets;
     }
+
+    /**
+     * Returns the list of productions from the underlying grammar.
+     * This is a convenience accessor used by components that build parsing tables.
+     */
+    public java.util.List<com.compiler.parser.grammar.Production> getProductions() {
+        return grammar.getProductions();
+    }
 }

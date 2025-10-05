@@ -4,14 +4,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
 
 import com.compiler.lexer.nfa.NFA;
+import com.compiler.lexer.dfa.DFA;
+import com.compiler.lexer.dfa.DfaState;
 
 public class LexerBuilder {
     /**
-     * Construye un NFA a partir de un regex usando RegexParser.
-     * @param regex Expresión regular en notación infija
-     * @return NFA construido
+     * Builds an NFA from a regular expression using RegexParser.
+     * @param regex regular expression in infix notation
+     * @return constructed NFA
      */
     public static NFA buildNfaFromRegex(String regex) {
         com.compiler.lexer.regex.RegexParser parser = new com.compiler.lexer.regex.RegexParser();
@@ -19,12 +24,12 @@ public class LexerBuilder {
     }
 
     /**
-     * Lee un archivo de definiciones de tokens y construye una lista de NFAs.
-     * Cada línea del archivo debe tener el formato: regex;TokenType
-     * Las líneas vacías o que comienzan con '#' son ignoradas.
-     * @param filePath Ruta al archivo de definiciones de tokens
-     * @return Lista de NFAs construidos
-     * @throws Exception Si ocurre un error al leer el archivo
+     * Reads a token definition file and builds a list of NFAs.
+     * Each non-empty, non-comment line must have the format: regex;TokenType
+     * Lines that are empty or that start with '#' are ignored.
+     * @param filePath path to the token definitions file
+     * @return list of constructed NFAs
+     * @throws Exception if an IO or build error occurs while reading the file
      */
     public static List<NFA> buildNfasFromFile(String filePath) throws Exception {
         List<NFA> nfas = new ArrayList<>();
@@ -51,5 +56,46 @@ public class LexerBuilder {
             nfas.add(nfa);
         }
         return nfas;
+    }
+
+    /**
+     * Builds a portable DFA transition table (LexerDefinition) from a token definition file.
+     * The provided alphabet is used to drive DFA construction and to order the transition table columns.
+     * @param filePath path to token definitions (same format as buildNfasFromFile)
+     * @param alphabet set of characters that form the input alphabet
+     * @return LexerDefinition containing the alphabet, transitions, start state and accepting mapping
+     * @throws Exception on IO or build errors
+     */
+    public static LexerDefinition buildLexerDefinitionFromFile(String filePath, Set<Character> alphabet) throws Exception {
+        List<NFA> nfas = buildNfasFromFile(filePath);
+        NFA combined = NFA.union(nfas);
+        DFA dfa = NfaToDfaConverter.convertNfaToDfa(combined, alphabet);
+        // Convert DFA to table representation
+        List<DfaState> states = dfa.allStates;
+        int stateCount = states.size();
+        List<Character> alphabetList = new ArrayList<>(alphabet);
+        int alphaSize = alphabetList.size();
+
+        int[][] transitions = new int[stateCount][alphaSize];
+        boolean[] isFinal = new boolean[stateCount];
+        String[] tokenTypeNames = new String[stateCount];
+
+        // Map states to indices
+        Map<DfaState, Integer> indexMap = new HashMap<>();
+        for (int i = 0; i < stateCount; i++) indexMap.put(states.get(i), i);
+
+        for (int i = 0; i < stateCount; i++) {
+            DfaState st = states.get(i);
+            isFinal[i] = st.isFinal;
+            tokenTypeNames[i] = st.tokenTypeName;
+            for (int a = 0; a < alphaSize; a++) {
+                char c = alphabetList.get(a);
+                DfaState target = st.getTransition(c);
+                transitions[i][a] = (target == null) ? -1 : indexMap.getOrDefault(target, -1);
+            }
+        }
+
+        int startIndex = indexMap.get(dfa.startState);
+        return new LexerDefinition(alphabetList, startIndex, transitions, isFinal, tokenTypeNames);
     }
 }

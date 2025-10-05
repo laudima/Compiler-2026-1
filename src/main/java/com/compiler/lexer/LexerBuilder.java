@@ -3,14 +3,14 @@ package com.compiler.lexer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
 
-import com.compiler.lexer.nfa.NFA;
 import com.compiler.lexer.dfa.DFA;
 import com.compiler.lexer.dfa.DfaState;
+import com.compiler.lexer.nfa.NFA;
 
 public class LexerBuilder {
     /**
@@ -91,7 +91,8 @@ public class LexerBuilder {
             for (int a = 0; a < alphaSize; a++) {
                 char c = alphabetList.get(a);
                 DfaState target = st.getTransition(c);
-                transitions[i][a] = (target == null) ? -1 : indexMap.getOrDefault(target, -1);
+                Integer targetIndex = (target == null) ? null : indexMap.get(target);
+                transitions[i][a] = (targetIndex == null) ? -1 : targetIndex;
             }
         }
 

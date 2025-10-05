@@ -47,9 +47,11 @@ public class LexerDefinition {
             if (i > 0) sb.append(',');
             char c = alphabet.get(i);
             sb.append('"');
-            if (c == '\\') sb.append("\\\\");
-            else if (c == '"') sb.append("\\\"");
-            else sb.append(c);
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '"' -> sb.append("\\\"");
+                default -> sb.append(c);
+            }
             sb.append('"');
         }
         sb.append(']');
@@ -150,7 +152,7 @@ public class LexerDefinition {
             }
         }
 
-        int[][] transitions = transitionsList.toArray(new int[transitionsList.size()][]);
+        int[][] transitions = transitionsList.toArray(int[][]::new);
 
         // isFinal
         Matcher mIs = Pattern.compile("\\\"isFinal\\\":\\[(.*?)\\],\\\"tokenTypeNames\\\":").matcher(compact);
@@ -217,5 +219,15 @@ public class LexerDefinition {
             if (a == null ? b != null : !a.equals(b)) return false;
         }
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Integer.hashCode(startState);
+        result = 31 * result + alphabet.hashCode();
+        result = 31 * result + Arrays.deepHashCode(transitions);
+        result = 31 * result + Arrays.hashCode(isFinal);
+        result = 31 * result + Arrays.hashCode(tokenTypeNames);
+        return result;
     }
 }

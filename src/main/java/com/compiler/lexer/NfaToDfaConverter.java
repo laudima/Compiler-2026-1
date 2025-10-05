@@ -67,13 +67,14 @@ public class NfaToDfaConverter {
 		// 3. Mark final states in the DFA and assign tokenTypeName
 		for (DfaState dfaState : dfaStates) {
 			String foundTokenTypeName = null;
+			int bestPriority = Integer.MAX_VALUE;
 			for (State nfaState : dfaState.nfaStates) {
 				if (nfaState.isFinal()) {
 					dfaState.isFinal = true;
-					// Prioridad: el primer tokenTypeName encontrado
-					if (foundTokenTypeName == null && nfaState.tokenTypeName != null) {
-						foundTokenTypeName = nfaState.tokenTypeName;
-					}
+							if (nfaState.tokenTypeName != null && nfaState.priority <= bestPriority) {
+								bestPriority = nfaState.priority;
+								foundTokenTypeName = nfaState.tokenTypeName;
+							}
 				}
 			}
 			dfaState.tokenTypeName = foundTokenTypeName;

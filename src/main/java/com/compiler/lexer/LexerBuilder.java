@@ -28,17 +28,27 @@ public class LexerBuilder {
      */
     public static List<NFA> buildNfasFromFile(String filePath) throws Exception {
         List<NFA> nfas = new ArrayList<>();
-        try (java.util.stream.Stream<String> lines = Files.lines(Paths.get(filePath))) {
-            lines.filter(line -> !line.trim().isEmpty() && !line.startsWith("#"))
-                 .map(line -> line.split(";", 2))
-                 .filter(parts -> parts.length == 2)
-                 .forEach(parts -> {
-                     String regex = parts[0].trim();
-                     String tokenTypeName = parts[1].trim();
-                     NFA nfa = buildNfaFromRegex(regex);
-                     nfa.endState.setFinal(tokenTypeName);
-                     nfas.add(nfa);
-                 });
+        List<String> allLines = Files.readAllLines(Paths.get(filePath));
+        List<String> tokenLines = new ArrayList<>();
+        for (String line : allLines) {
+            if (line == null) continue;
+            String t = line.trim();
+            if (t.isEmpty() || t.startsWith("#")) continue;
+            tokenLines.add(t);
+        }
+
+        // Assign priorities so that later lines have higher precedence (lower numeric priority)
+        int total = tokenLines.size();
+        for (int idx = 0; idx < total; idx++) {
+            String line = tokenLines.get(idx);
+            String[] parts = line.split(";", 2);
+            if (parts.length != 2) continue;
+            String regex = parts[0].trim();
+            String tokenTypeName = parts[1].trim();
+            NFA nfa = buildNfaFromRegex(regex);
+            int priority = total - idx - 1; // last line gets 0
+            nfa.endState.setFinal(tokenTypeName, priority);
+            nfas.add(nfa);
         }
         return nfas;
     }

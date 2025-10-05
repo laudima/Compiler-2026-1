@@ -12,12 +12,14 @@ import com.compiler.parser.grammar.Symbol;
  */
 public class StaticAnalyzer {
     private final Grammar grammar;
-    private Map<Symbol, Set<Symbol>> firstSets;
-    private Map<Symbol, Set<Symbol>> followSets;
+    private final Map<Symbol, Set<Symbol>> firstSets;
+    private final Map<Symbol, Set<Symbol>> followSets;
 
     public StaticAnalyzer(Grammar grammar) {
         this.grammar = grammar;
-        // TODO: Initialize the maps
+        // initialize maps
+        this.firstSets = new java.util.HashMap<>();
+        this.followSets = new java.util.HashMap<>();
     }
 
     /**
@@ -25,25 +27,69 @@ public class StaticAnalyzer {
      * @return A map from Symbol to its FIRST set.
      */
     public Map<Symbol, Set<Symbol>> getFirstSets() {
-        // TODO: Implement the algorithm to calculate FIRST sets.
-        /*
-         * Pseudocode for FIRST set calculation:
-         *
-         * 1. For each symbol S in grammar:
-         *      - If S is a terminal, FIRST(S) = {S}
-         *      - If S is a non-terminal, FIRST(S) = {}
-         *
-         * 2. Repeat until no changes:
-         *      For each production A -> X1 X2 ... Xn:
-         *          - For each symbol Xi in the right-hand side:
-         *              a. Add FIRST(Xi) - {ε} to FIRST(A)
-         *              b. If ε is in FIRST(Xi), continue to next Xi
-         *                 Otherwise, break
-         *          - If ε is in FIRST(Xi) for all i, add ε to FIRST(A)
-         *
-         * 3. Return the map of FIRST sets for all symbols.
-         */
-        throw new UnsupportedOperationException("Not implemented");
+        if (!firstSets.isEmpty()) return firstSets;
+
+        // Initialize FIRST sets: ensure an entry for every symbol referenced in the grammar
+        for (Symbol nt : grammar.getNonTerminals()) {
+            firstSets.put(nt, new java.util.HashSet<>());
+        }
+        for (Symbol t : grammar.getTerminals()) {
+            java.util.Set<Symbol> set = new java.util.HashSet<>();
+            set.add(t);
+            firstSets.put(t, set);
+        }
+        // Also ensure symbols that appear only on RHS (like the explicit epsilon symbol) are present
+        for (com.compiler.parser.grammar.Production p : grammar.getProductions()) {
+            for (Symbol s : p.getRight()) {
+                if (!firstSets.containsKey(s)) {
+                    if (s.type == com.compiler.parser.grammar.SymbolType.TERMINAL) {
+                        java.util.Set<Symbol> set = new java.util.HashSet<>();
+                        set.add(s);
+                        firstSets.put(s, set);
+                    } else {
+                        firstSets.put(s, new java.util.HashSet<>());
+                    }
+                }
+            }
+        }
+
+        // epsilon symbol (named \u03b5 in grammar's symbol map)
+        Symbol epsilon = new Symbol("\u03b5", com.compiler.parser.grammar.SymbolType.TERMINAL);
+
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            for (com.compiler.parser.grammar.Production p : grammar.getProductions()) {
+                Symbol A = p.getLeft();
+                java.util.Set<Symbol> firstA = firstSets.get(A);
+                java.util.List<Symbol> rhs = p.getRight();
+
+                boolean allNullable = true;
+                for (Symbol Xi : rhs) {
+                    java.util.Set<Symbol> firstXi = firstSets.get(Xi);
+                    if (firstXi == null) firstXi = new java.util.HashSet<>();
+
+                    // add FIRST(Xi) - {epsilon} to FIRST(A)
+                    for (Symbol s : firstXi) {
+                        if (!s.equals(epsilon)) {
+                            if (firstA.add(s)) changed = true;
+                        }
+                    }
+
+                    // if Xi's FIRST does not contain epsilon, stop
+                    if (!firstXi.contains(epsilon)) {
+                        allNullable = false;
+                        break;
+                    }
+                }
+
+                if (allNullable) {
+                    if (firstA.add(epsilon)) changed = true;
+                }
+            }
+        }
+
+        return firstSets;
     }
 
     /**
@@ -51,26 +97,64 @@ public class StaticAnalyzer {
      * @return A map from Symbol to its FOLLOW set.
      */
     public Map<Symbol, Set<Symbol>> getFollowSets() {
-        // TODO: Implement the algorithm to calculate FOLLOW sets.
-        /*
-         * Pseudocode for FOLLOW set calculation:
-         *
-         * 1. For each non-terminal A, FOLLOW(A) = {}
-         * 2. Add $ (end of input) to FOLLOW(S), where S is the start symbol
-         *
-         * 3. Repeat until no changes:
-         *      For each production B -> X1 X2 ... Xn:
-         *          For each Xi (where Xi is a non-terminal):
-         *              a. For each symbol Xj after Xi (i < j <= n):
-         *                  - Add FIRST(Xj) - {ε} to FOLLOW(Xi)
-         *                  - If ε is in FIRST(Xj), continue to next Xj
-         *                    Otherwise, break
-         *              b. If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
-         *
-         * 4. Return the map of FOLLOW sets for all non-terminals.
-         *
-         * Note: This method should call getFirstSets() first to obtain FIRST sets.
-         */
-        throw new UnsupportedOperationException("Not implemented");
+        if (!followSets.isEmpty()) return followSets;
+
+        // Ensure FIRST sets are computed
+        Map<Symbol, Set<Symbol>> first = getFirstSets();
+
+        // initialize FOLLOW for non-terminals
+        for (Symbol nt : grammar.getNonTerminals()) {
+            followSets.put(nt, new java.util.HashSet<>());
+        }
+
+        // Add end marker $ to start symbol's FOLLOW set. Represent $ as a special terminal symbol
+        Symbol dollar = new Symbol("$", com.compiler.parser.grammar.SymbolType.TERMINAL);
+        followSets.get(grammar.getStartSymbol()).add(dollar);
+
+        Symbol epsilon = new Symbol("\u03b5", com.compiler.parser.grammar.SymbolType.TERMINAL);
+
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            for (com.compiler.parser.grammar.Production p : grammar.getProductions()) {
+                Symbol B = p.getLeft();
+                java.util.List<Symbol> rhs = p.getRight();
+
+                for (int i = 0; i < rhs.size(); i++) {
+                    Symbol Xi = rhs.get(i);
+                    if (Xi.type != com.compiler.parser.grammar.SymbolType.NON_TERMINAL) continue;
+
+                    java.util.Set<Symbol> followXi = followSets.get(Xi);
+                    // compute FIRST of beta (symbols after Xi)
+                    boolean allNullable = true;
+                    for (int j = i + 1; j < rhs.size(); j++) {
+                        Symbol Xj = rhs.get(j);
+                        java.util.Set<Symbol> firstXj = (java.util.Set<Symbol>) first.get(Xj);
+                        if (firstXj == null) firstXj = new java.util.HashSet<>();
+
+                        for (Symbol s : firstXj) {
+                            if (!s.equals(epsilon)) {
+                                if (followXi.add(s)) changed = true;
+                            }
+                        }
+
+                        if (!firstXj.contains(epsilon)) {
+                            allNullable = false;
+                            break;
+                        }
+                    }
+
+                    if (allNullable) {
+                        // add FOLLOW(B) to FOLLOW(Xi)
+                        java.util.Set<Symbol> followB = followSets.get(B);
+                        for (Symbol s : followB) {
+                            if (followXi.add(s)) changed = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return followSets;
     }
 }

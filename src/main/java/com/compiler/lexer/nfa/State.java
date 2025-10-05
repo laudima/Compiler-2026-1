@@ -42,6 +42,11 @@ public class State {
      * The token type name associated with this final state (null if not final).
      */
     public String tokenTypeName;
+    /**
+     * Priority of this final state when multiple final NFA states are present in a DFA state.
+     * Lower values mean higher priority. Defaults to Integer.MAX_VALUE (lowest priority).
+     */
+    public int priority = Integer.MAX_VALUE;
 
     /**
      * Constructs a new state with a unique identifier and no transitions.
@@ -83,6 +88,17 @@ public class State {
     public void setFinal(String tokenTypeName) {
         this.isFinal = true;
         this.tokenTypeName = tokenTypeName;
+    }
+
+    /**
+     * Sets this state as final and assigns a priority for tie-breaking.
+     * @param tokenTypeName The token type name to associate with this state.
+     * @param priority Priority value (lower wins)
+     */
+    public void setFinal(String tokenTypeName, int priority) {
+        this.isFinal = true;
+        this.tokenTypeName = tokenTypeName;
+        this.priority = priority;
     }
 
     /**

@@ -10,6 +10,7 @@ public class Symbol {
     /** The type of the symbol (terminal or non-terminal). */
     public final SymbolType type;
 
+    public static final Symbol EPSILON = new Symbol("ε", SymbolType.TERMINAL);
     /**
      * Constructs a Symbol with the specified name and type.
      *

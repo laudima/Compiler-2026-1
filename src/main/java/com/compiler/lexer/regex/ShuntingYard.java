@@ -81,6 +81,58 @@ public class ShuntingYard {
         4. After loop, pop remaining operators to output
         5. Return output as string
          */
-        throw new UnsupportedOperationException("Not implemented");
+
+
+
+        Map<Character, Integer> precedence = new HashMap<>();
+        precedence.put('|', 1); // Alternation
+        precedence.put('.', 2); // Concatenation
+        precedence.put('*', 3); // Kleene Star
+        precedence.put('?', 3); // Optional
+        precedence.put('+', 3); // One or more
+        precedence.put('(', 0); // Parentheses have lowest precedence
+        precedence.put(')', 0); // Parentheses have lowest precedence
+
+        String regex; 
+        regex = insertConcatenationOperator(infixRegex);
+
+        // Initialize the output and operator stacks
+        StringBuilder output = new StringBuilder();
+        Stack<Character> operators = new Stack<>();
+
+        for (int i = 0; i < regex.length(); i++) {
+            char current = regex.charAt(i);
+
+            if (isOperand(current)) {
+                // If operand add to output
+                output.append(current);
+            } else if (current == '(') {
+                // If '(', push to stack
+                operators.push(current);
+            } else if (current == ')') {
+                // If ')', pop until '(' is found
+                while (!operators.isEmpty() && operators.peek() != '(') {
+                    output.append(operators.pop());
+                }
+                if (!operators.isEmpty()) {
+                    operators.pop(); // Pop '('
+                }
+            } else {
+                // If operator, pop higher/equal precedence operators
+                while (!operators.isEmpty() && operators.peek() != '(' && 
+                      precedence.get(current) <= precedence.get(operators.peek())) {
+                    output.append(operators.pop());
+                }
+                operators.push(current);
+            }
+        }
+
+        // Pop remaining operators
+        while (!operators.isEmpty()) {
+            output.append(operators.pop());
+        }
+
+        return output.toString();
     }
+
 }

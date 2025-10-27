@@ -34,6 +34,9 @@ public class LALR1ParserTest {
         LALR1Parser parser = buildParser(g);
         LALR1Table table = parser.getTable(); // access table for debugging
 
+        table.printActionTable();
+        table.printGotoTable();
+
         for (var e : table.getActionTable().entrySet()) {
             System.out.println("State " + e.getKey() + ":");
             for (var kv : e.getValue().entrySet()) {
@@ -41,6 +44,8 @@ public class LALR1ParserTest {
             }
         }
 
+        assertTrue(parser.parse(tokensFromString("abb")), "abb should be accepted");
+        assertTrue(parser.parse(tokensFromString("aaabb")), "aaabb should be accepted");
         assertTrue(parser.parse(tokensFromString("abab")), "abab should be accepted");
         assertFalse(parser.parse(tokensFromString("aab")), "aab should be rejected");
         assertTrue(parser.parse(tokensFromString("aaabab")), "aaabab should be accepted");

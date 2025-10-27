@@ -47,5 +47,17 @@ public class Production {
         return right;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(left.name).append(" -> ");
+        for (int i = 0; i < right.size(); i++) {
+            sb.append(right.get(i).name);
+            if (i < right.size() - 1) {
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
+    }
 
 }

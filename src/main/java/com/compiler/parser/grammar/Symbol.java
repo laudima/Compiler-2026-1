@@ -51,4 +51,9 @@ public class Symbol {
         result = 31 * result + type.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return name + " (" + type + ")";
+    }
 }
